@@ -194,18 +194,21 @@ const TableComponent = ({ headers, rows }) => {
           disabled={editingRowIndex !== null}
         />
 
-        {selectedRowIndices.length > 0 && (
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => {
-              deleteMultipleRows(selectedRowIndices);
-              table.resetRowSelection(); // clear selection
-            }}
-          >
-            Delete Selected ({selectedRowIndices.length})
-          </Button>
-        )}
+        <Box sx={{ padding: "1rem" }}>
+          {selectedRowIndices.length > 0 && (
+            <Button
+              variant="outlined"
+              color="error"
+              sx={{ width: "30%", margin: 0 }}
+              onClick={() => {
+                deleteMultipleRows(selectedRowIndices);
+                table.resetRowSelection(); // clear selection
+              }}
+            >
+              Delete Selected ({selectedRowIndices.length})
+            </Button>
+          )}
+        </Box>
 
         <Box sx={{ flex: 1, overflowX: "auto", overflowY: "auto" }}>
           <Table stickyHeader aria-label="editable table with selection">
