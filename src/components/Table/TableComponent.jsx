@@ -32,6 +32,7 @@ import { useTableState } from "../../hooks/useTableState";
 
 // Utilities
 import { getTablePaginationProps } from "../../utils/tableHelpers";
+import ExportCSVButton from "./ExportCSV";
 
 const TableComponent = ({ headers, rows }) => {
   const {
@@ -91,6 +92,7 @@ const TableComponent = ({ headers, rows }) => {
             const value = localEditRowData[header] || "";
             return (
               <EditableCell
+                key={`${editingRowIndex}-${header}`}
                 value={value}
                 onChange={(e) => updateCellValue(header, e.target.value)}
               />
@@ -158,6 +160,7 @@ const TableComponent = ({ headers, rows }) => {
           flexDirection: "column",
           paddingTop: "64px",
           paddingBottom: "72px",
+          width: { xs: "330px", sm: "100%" },
         }}
       >
         <TableSearch
@@ -178,7 +181,11 @@ const TableComponent = ({ headers, rows }) => {
                       <TableCell
                         key={header.id}
                         sortDirection={sortDirection || false}
-                        sx={{ backgroundColor: "background.paper" }}
+                        sx={{
+                          backgroundColor: "background.paper",
+                          fontSize: "1rem",
+                          fontWeight: "700",
+                        }}
                       >
                         {canSort ? (
                           <TableSortLabel
@@ -244,6 +251,19 @@ const TableComponent = ({ headers, rows }) => {
           <TablePagination {...paginationProps} />
         </Box>
       </Paper>
+      <Box
+        sx={{
+          top: 0,
+          right: 0,
+          left: 16,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          height: "64px",
+        }}
+      >
+        <ExportCSVButton data={editableData} />
+      </Box>
     </Box>
   );
 };

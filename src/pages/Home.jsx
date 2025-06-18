@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import React, { useState } from "react";
 import CSVUploader from "../components/CSVUploader";
-import TableComponent from "../components/TableComponent";
+import TableComponent from "../components/Table";
 
 const Home = () => {
   const [csvData, setCsvData] = useState({ headers: [], rows: [] });
