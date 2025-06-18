@@ -12,11 +12,6 @@ This project is a **responsive, editable table component** built with **React**,
 
 ---
 
-## 📸 Preview
-
-![preview](./preview.gif) <!-- Add a preview image or GIF here -->
-
----
 
 ## 🚀 Features
 
@@ -41,4 +36,12 @@ This project is a **responsive, editable table component** built with **React**,
 | Vite / CRA     | Lightning-fast dev server               |
 
 ---
+
+## How to Run Project
+
+-git clone https://github.com/your-username/react-editable-table.git
+-cd react-editable-table
+-npm install
+-npm run dev
+
 
