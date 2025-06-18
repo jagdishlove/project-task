@@ -35,14 +35,16 @@ export const useTableData = (initialRows) => {
     setEditingRowIndex(null);
   }, []);
 
-  const deleteRow = useCallback(
-    (rowIndex) => {
-      const updated = editableData.filter((_, idx) => idx !== rowIndex);
-      setEditableData(updated);
-      setEditingRowIndex(null);
-    },
-    [editableData]
-  );
+  const deleteRow = useCallback((rowIndex) => {
+    setEditableData((prev) => prev.filter((_, idx) => idx !== rowIndex));
+    setEditingRowIndex(null);
+  }, []);
+
+  // ✅ New: Bulk delete handler
+  const deleteMultipleRows = useCallback((indices) => {
+    setEditableData((prev) => prev.filter((_, idx) => !indices.includes(idx)));
+    setEditingRowIndex(null);
+  }, []);
 
   const updateCellValue = useCallback((header, value) => {
     setLocalEditRowData((prevData) => ({
@@ -59,6 +61,7 @@ export const useTableData = (initialRows) => {
     saveEdit,
     cancelEdit,
     deleteRow,
+    deleteMultipleRows,
     updateCellValue,
   };
 };

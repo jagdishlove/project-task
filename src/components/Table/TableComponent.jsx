@@ -18,6 +18,8 @@ import {
   Paper,
   TablePagination,
   Box,
+  Checkbox,
+  Button,
 } from "@mui/material";
 
 // Custom components
@@ -44,6 +46,7 @@ const TableComponent = ({ headers, rows }) => {
     cancelEdit,
     deleteRow,
     updateCellValue,
+    deleteMultipleRows,
   } = useTableData(rows);
 
   const {
@@ -61,6 +64,22 @@ const TableComponent = ({ headers, rows }) => {
 
   const columns = useMemo(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllRowsSelected()}
+            indeterminate={table.getIsSomeRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+      },
       {
         id: "actions",
         header: "Actions",
@@ -127,7 +146,13 @@ const TableComponent = ({ headers, rows }) => {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    enableRowSelection: true,
   });
+
+  // ✅ Must come after table initialization
+  const selectedRowIndices = table
+    .getSelectedRowModel()
+    .rows.map((r) => r.index);
 
   const handleDeleteConfirm = () => {
     if (rowToDeleteIndex !== null) {
@@ -160,7 +185,7 @@ const TableComponent = ({ headers, rows }) => {
           flexDirection: "column",
           paddingTop: "64px",
           paddingBottom: "72px",
-          width: { xs: "330px", sm: "100%" },
+          width: { xs: "100%", sm: "100%" },
         }}
       >
         <TableSearch
@@ -169,8 +194,21 @@ const TableComponent = ({ headers, rows }) => {
           disabled={editingRowIndex !== null}
         />
 
+        {selectedRowIndices.length > 0 && (
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => {
+              deleteMultipleRows(selectedRowIndices);
+              table.resetRowSelection(); // clear selection
+            }}
+          >
+            Delete Selected ({selectedRowIndices.length})
+          </Button>
+        )}
+
         <Box sx={{ flex: 1, overflowX: "auto", overflowY: "auto" }}>
-          <Table stickyHeader aria-label="table with sticky header">
+          <Table stickyHeader aria-label="editable table with selection">
             <TableHead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -214,7 +252,7 @@ const TableComponent = ({ headers, rows }) => {
             <TableBody>
               {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={headers.length + 1} align="center">
+                  <TableCell colSpan={headers.length + 2} align="center">
                     No results found.
                   </TableCell>
                 </TableRow>
@@ -251,6 +289,7 @@ const TableComponent = ({ headers, rows }) => {
           <TablePagination {...paginationProps} />
         </Box>
       </Paper>
+
       <Box
         sx={{
           top: 0,
