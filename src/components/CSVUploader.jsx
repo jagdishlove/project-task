@@ -1,28 +1,22 @@
-import React from "react";
+import Papa from "papaparse";
 
 const CSVUploader = ({ onDataParsed }) => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      const text = event.target.result;
-      const lines = text.split("\n");
-      const headers = lines[0].split(",").map((h) => h.trim());
-
-      const rows = lines.slice(1).map((line) => {
-        const values = line.split(",");
-        return headers.reduce((obj, header, index) => {
-          obj[header] = values[index]?.trim();
-          return obj;
-        }, {});
-      });
-
-      onDataParsed({ headers, rows });
-    };
-
-    reader.readAsText(file);
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const headers = results.meta.fields; // array of headers
+        const rows = results.data; // array of objects
+        onDataParsed({ headers, rows });
+      },
+      error: (error) => {
+        console.error("CSV parse error:", error);
+      },
+    });
   };
 
   return (
