@@ -39,9 +39,9 @@ This project is a **responsive, editable table component** built with **React**,
 
 ## How to Run Project
 
--git clone https://github.com/your-username/react-editable-table.git
--cd react-editable-table
--npm install
--npm run dev
+- git clone <URL>
+- cd react-editable-table
+- npm install
+- npm run dev
 
 
