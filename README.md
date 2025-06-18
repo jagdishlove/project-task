@@ -9,7 +9,7 @@ This project is a **responsive, editable table component** built with **React**,
 ✅ CSV export  
 ✅ Mobile responsiveness  
 ✅ Custom styling and modular design
-
+✅ multiple deletion on selected
 ---
 
 
