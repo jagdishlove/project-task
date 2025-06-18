@@ -1,12 +1,44 @@
-# React + Vite
+# 🧾 React Editable Table with MUI & TanStack Table
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a **responsive, editable table component** built with **React**, **Material UI (MUI)**, and **TanStack Table (v8)**. It supports:
 
-Currently, two official plugins are available:
+✅ Editing rows  
+✅ Delete confirmation  
+✅ Global search  
+✅ Sorting and pagination  
+✅ CSV export  
+✅ Mobile responsiveness  
+✅ Custom styling and modular design
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 📸 Preview
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+![preview](./preview.gif) <!-- Add a preview image or GIF here -->
+
+---
+
+## 🚀 Features
+
+- 🖋 **Inline Editing** with TextFields
+- 🗑 **Delete with Confirmation Dialog**
+- 🔍 **Global Search Filtering**
+- 📥 **Export to CSV**
+- 📱 **Responsive Design**
+- 📄 **Sticky Headers & Pagination**
+- ♻️ **Modular Hooks & Components**
+- ⚡ **Performance-optimized with useMemo & useCallback**
+
+---
+
+## 🛠 Tech Stack
+
+| Tech           | Description                             |
+|----------------|-----------------------------------------|
+| React          | Frontend framework                      |
+| MUI (v5)       | Material Design UI components           |
+| TanStack Table | Powerful table logic (sorting, paging) |
+| Vite / CRA     | Lightning-fast dev server               |
+
+---
+
