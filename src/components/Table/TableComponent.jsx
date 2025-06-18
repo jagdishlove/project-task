@@ -194,8 +194,8 @@ const TableComponent = ({ headers, rows }) => {
           disabled={editingRowIndex !== null}
         />
 
-        <Box sx={{ padding: "1rem" }}>
-          {selectedRowIndices.length > 0 && (
+        {selectedRowIndices.length > 0 && (
+          <Box sx={{ padding: "1rem" }}>
             <Button
               variant="outlined"
               color="error"
@@ -207,8 +207,8 @@ const TableComponent = ({ headers, rows }) => {
             >
               Delete Selected ({selectedRowIndices.length})
             </Button>
-          )}
-        </Box>
+          </Box>
+        )}
 
         <Box sx={{ flex: 1, overflowX: "auto", overflowY: "auto" }}>
           <Table stickyHeader aria-label="editable table with selection">
