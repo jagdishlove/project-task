@@ -243,6 +243,8 @@ const TableComponent = ({ headers, rows }) => {
                           backgroundColor: "background.paper",
                           fontSize: "1rem",
                           fontWeight: "700",
+                          textAlign:
+                            header.id === "actions" ? "center" : "left",
                         }}
                       >
                         {canSort ? (
