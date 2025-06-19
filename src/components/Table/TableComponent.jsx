@@ -209,23 +209,20 @@ const TableComponent = ({ headers, rows }) => {
           >
             Add Row
           </Button>
-        </Box>
 
-        {selectedRowIndices.length > 0 && (
-          <Box sx={{ padding: "1rem" }}>
-            <Button
-              variant="outlined"
-              color="error"
-              sx={{ width: "30%", margin: 0 }}
-              onClick={() => {
-                deleteMultipleRows(selectedRowIndices);
-                table.resetRowSelection(); // clear selection
-              }}
-            >
-              Delete Selected ({selectedRowIndices.length})
-            </Button>
-          </Box>
-        )}
+          <Button
+            variant="outlined"
+            color="error"
+            disabled={!selectedRowIndices.length > 0}
+            // sx={{ width: "30%", margin: 0 }}
+            onClick={() => {
+              deleteMultipleRows(selectedRowIndices);
+              table.resetRowSelection(); // clear selection
+            }}
+          >
+            Delete Selected ({selectedRowIndices.length})
+          </Button>
+        </Box>
 
         <Box sx={{ flex: 1, overflowX: "auto", overflowY: "auto" }}>
           <Table stickyHeader aria-label="editable table with selection">
