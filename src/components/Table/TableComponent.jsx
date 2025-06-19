@@ -47,7 +47,8 @@ const TableComponent = ({ headers, rows }) => {
     deleteRow,
     updateCellValue,
     deleteMultipleRows,
-  } = useTableData(rows);
+    addNewRow,
+  } = useTableData(rows, headers);
 
   const {
     sorting,
@@ -193,6 +194,15 @@ const TableComponent = ({ headers, rows }) => {
           onChange={(e) => setGlobalFilter(e.target.value)}
           disabled={editingRowIndex !== null}
         />
+        <Box sx={{ padding: "1rem", display: "flex", gap: 2 }}>
+          <Button
+            variant="contained"
+            onClick={addNewRow}
+            disabled={editingRowIndex !== null}
+          >
+            Add Row
+          </Button>
+        </Box>
 
         {selectedRowIndices.length > 0 && (
           <Box sx={{ padding: "1rem" }}>

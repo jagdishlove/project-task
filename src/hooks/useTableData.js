@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-export const useTableData = (initialRows) => {
+export const useTableData = (initialRows, headers = []) => {
   const [editableData, setEditableData] = useState([]);
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [localEditRowData, setLocalEditRowData] = useState({});
@@ -16,6 +16,20 @@ export const useTableData = (initialRows) => {
     },
     [editableData]
   );
+  const addNewRow = useCallback(() => {
+    const newRow = {};
+    headers.forEach((header) => {
+      newRow[header] = "";
+    });
+
+    setEditableData((prev) => {
+      const updated = [newRow, ...prev]; // 👈 Insert at the top
+      setEditingRowIndex(0); // 👈 Start editing the first row
+      setLocalEditRowData({ ...newRow });
+
+      return updated;
+    });
+  }, [headers]);
 
   const saveEdit = useCallback(
     (rowIndex) => {
@@ -63,5 +77,6 @@ export const useTableData = (initialRows) => {
     deleteRow,
     deleteMultipleRows,
     updateCellValue,
+    addNewRow,
   };
 };
