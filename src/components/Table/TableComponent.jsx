@@ -20,6 +20,7 @@ import {
   Box,
   Checkbox,
   Button,
+  Typography,
 } from "@mui/material";
 
 // Custom components
@@ -176,7 +177,13 @@ const TableComponent = ({ headers, rows }) => {
         onClose={closeDeleteDialog}
         onConfirm={handleDeleteConfirm}
       />
-
+      <Typography
+        variant="h5"
+        component="h2"
+        sx={{ padding: "16px", fontWeight: "bold" }}
+      >
+        Data Table
+      </Typography>
       <Paper
         elevation={3}
         sx={{
@@ -265,8 +272,18 @@ const TableComponent = ({ headers, rows }) => {
             <TableBody>
               {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={headers.length + 2} align="center">
-                    No results found.
+                  <TableCell
+                    colSpan={headers.length + 2}
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
+                    <Typography
+                      sx={{ width: { xs: "7%", sm: "30%" } }}
+                      variant="subtitle1"
+                      color="textSecondary"
+                    >
+                      No results found.
+                    </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
