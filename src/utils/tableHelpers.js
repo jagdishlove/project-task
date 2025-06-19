@@ -73,4 +73,5 @@ export const getTablePaginationProps = (
   },
   rowsPerPageOptions: [5, 10, 20, 50],
   labelRowsPerPage: "Rows per page:",
+ 
 });

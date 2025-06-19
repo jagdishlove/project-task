@@ -299,7 +299,15 @@ const TableComponent = ({ headers, rows }) => {
             zIndex: 10,
           }}
         >
-          <TablePagination {...paginationProps} />
+          <TablePagination
+            {...paginationProps}
+            siblingCount={1}
+            boundaryCount={1}
+            color="primary"
+            shape="rounded"
+            showFirstButton
+            showLastButton
+          />
         </Box>
       </Paper>
 
