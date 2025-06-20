@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -38,15 +38,16 @@ import { getTablePaginationProps } from "../../utils/tableHelpers";
 import ExportCSVButton from "./ExportCSV";
 
 const TableComponent = ({ headers, rows }) => {
+  const [data, setData] = useState(rows);
+
+  console.log("datadatadata", data);
   const {
     editableData,
     editingRowIndex,
-    localEditRowData,
     startEditing,
     saveEdit,
     cancelEdit,
     deleteRow,
-    updateCellValue,
     deleteMultipleRows,
     addNewRow,
   } = useTableData(rows, headers);
@@ -106,34 +107,34 @@ const TableComponent = ({ headers, rows }) => {
       ...headers.map((header) => ({
         accessorKey: header,
         header: header,
-        cell: ({ row }) => {
+        cell: ({ row, getValue, column, table }) => {
           const rowIndex = row.index;
 
           if (editingRowIndex === rowIndex) {
-            const value = localEditRowData[header] || "";
+            const value = getValue() || "";
+
             return (
               <EditableCell
-                key={`${editingRowIndex}-${header}`}
                 value={value}
-                onChange={(e) => updateCellValue(header, e.target.value)}
+                row={row}
+                column={column}
+                table={table}
               />
             );
           }
 
-          return editableData[rowIndex]?.[header] ?? "";
+          return data[rowIndex]?.[header] ?? "";
         },
       })),
     ],
     [
       headers,
-      editableData,
       editingRowIndex,
-      localEditRowData,
-      saveEdit,
       cancelEdit,
+      saveEdit,
       startEditing,
       openDeleteDialog,
-      updateCellValue,
+      data,
     ]
   );
 
@@ -149,6 +150,16 @@ const TableComponent = ({ headers, rows }) => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     enableRowSelection: true,
+    meta: {
+      updateData: (rowIndex, columnId, value) => {
+        console.log("rowIndexrowIndexrowIndex", rowIndex, columnId, value);
+        setData((prev) =>
+          prev.map((row, index) =>
+            index === rowIndex ? { ...row, [columnId]: value } : row
+          )
+        );
+      },
+    },
   });
 
   // ✅ Must come after table initialization
@@ -240,8 +251,9 @@ const TableComponent = ({ headers, rows }) => {
                           backgroundColor: "background.paper",
                           fontSize: "1rem",
                           fontWeight: "700",
-                          textAlign:
-                            header.id === "actions" ? "center" : "left",
+                          textAlign: "center",
+
+                          width: header.getSize(),
                         }}
                       >
                         {canSort ? (
@@ -261,7 +273,6 @@ const TableComponent = ({ headers, rows }) => {
                             header.getContext()
                           )
                         )}
-                        <Box className="resizer" />
                       </TableCell>
                     );
                   })}
