@@ -261,6 +261,7 @@ const TableComponent = ({ headers, rows }) => {
                             header.getContext()
                           )
                         )}
+                        <Box className="resizer" />
                       </TableCell>
                     );
                   })}
@@ -317,8 +318,8 @@ const TableComponent = ({ headers, rows }) => {
         >
           <TablePagination
             {...paginationProps}
-            siblingCount={1}
-            boundaryCount={1}
+            siblingcount={1}
+            boundarycount={1}
             color="primary"
             shape="rounded"
             showFirstButton
