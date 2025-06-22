@@ -599,6 +599,17 @@ const TableComponent = ({ headers, rows }) => {
               ".MuiTablePaginationActions-root": {
                 marginLeft: "0 !important",
               },
+
+              ".MuiIconButton-root": {
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: "none",
+                },
+                "&:focus-visible": {
+                  outline: "none",
+                  boxShadow: "none",
+                },
+              },
             }}
           />
         </Box>
