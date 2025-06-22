@@ -23,7 +23,6 @@ const Home = () => {
   return (
     <Box
       sx={{
-        p: { xs: 2, sm: 4 },
         maxWidth: 1200,
         mx: "auto",
       }}

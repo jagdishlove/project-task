@@ -1,13 +1,13 @@
+// theme.js
 import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
 let theme = createTheme({
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    // you can define your base styles here if needed
+    fontFamily: "'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif",
   },
-  // optionally, you can define breakpoints and other theme stuff
+  // Optional: customize breakpoints for responsiveness
 });
 
-theme = responsiveFontSizes(theme); // <- this auto-scales font based on breakpoints
+theme = responsiveFontSizes(theme); // ⬅️ Automatically scales fonts based on screen size
 
 export default theme;

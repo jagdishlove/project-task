@@ -23,7 +23,7 @@ const ExportCSVButton = ({ data, filename = "table_data.csv", onClick }) => {
       onClick={handleExport}
       sx={{ ml: 2 }}
     >
-      Export CSV
+      Export
     </Button>
   );
 };

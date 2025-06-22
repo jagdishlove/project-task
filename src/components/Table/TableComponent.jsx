@@ -298,46 +298,64 @@ const TableComponent = ({ headers, rows }) => {
       <Dialog
         open={exportDialogOpen}
         onClose={() => setExportDialogOpen(false)}
-        fullwidth
+        fullWidth
         maxWidth="xs"
         PaperProps={{
           sx: {
             borderRadius: 3,
             p: 2,
+            boxShadow: 6,
           },
         }}
       >
         <DialogTitle
           sx={{
-            fontWeight: 600,
+            fontWeight: 700,
+            fontSize: "1.25rem",
             pb: 0,
-            fontSize: "1.2rem",
+            textAlign: "center",
           }}
         >
           Export CSV File
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 1 }}>
+        <DialogContent sx={{ pt: 2 }}>
           <TextField
             autoFocus
-            margin="dense"
+            fullWidth
             label="Filename"
-            fullwidth
+            variant="outlined"
             value={exportFilename}
             onChange={(e) => setExportFilename(e.target.value)}
-            placeholder="Enter filename (e.g. report)"
+            placeholder="e.g. user_report"
+            sx={{ mt: 1 }}
             InputProps={{
               endAdornment: (
-                <Typography variant="caption" sx={{ ml: 1 }}>
-                  .csv
-                </Typography>
+                <InputAdornment position="end">
+                  <Typography variant="body2" color="text.secondary">
+                    .csv
+                  </Typography>
+                </InputAdornment>
               ),
             }}
           />
         </DialogContent>
 
-        <DialogActions sx={{ justifyContent: "space-between", px: 2 }}>
-          <Button onClick={() => setExportDialogOpen(false)} color="inherit">
+        <DialogActions
+          sx={{
+            px: 2,
+            pt: 1,
+            pb: 2,
+            justifyContent: "space-between",
+          }}
+        >
+          <Button
+            variant="outlined"
+            color="inherit"
+            fullWidth
+            onClick={() => setExportDialogOpen(false)}
+            sx={{ mr: 1 }}
+          >
             Cancel
           </Button>
           <ExportCSVButton
@@ -348,20 +366,32 @@ const TableComponent = ({ headers, rows }) => {
                 : `${exportFilename || "table_data"}.csv`
             }
             onClick={() => setExportDialogOpen(false)}
+            fullWidth
           />
         </DialogActions>
       </Dialog>
 
       <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
-        <Typography
-          fullwidth
-          bgcolor={"lightgray"}
-          p={2}
-          variant="h6"
-          fontWeight="bold"
+        <Box
+          sx={{
+            px: 2,
+            pt: 2,
+            pb: 1,
+            backgroundColor: "#f5f5f5",
+            borderBottom: "1px solid #ddd",
+          }}
         >
-          Data Table
-        </Typography>
+          <Typography
+            variant="h6"
+            fontWeight={700}
+            sx={{
+              textAlign: { xs: "center", sm: "left" },
+              mb: { xs: 1, sm: 0 },
+            }}
+          >
+            Data Table
+          </Typography>
+        </Box>
         <Box
           sx={{
             px: 2,
@@ -371,6 +401,7 @@ const TableComponent = ({ headers, rows }) => {
             justifyContent: "space-between",
             alignItems: "center",
             gap: 2,
+            flexWrap: "wrap",
           }}
         >
           <TextField
@@ -378,21 +409,27 @@ const TableComponent = ({ headers, rows }) => {
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             size="small"
-            width={80}
+            fullWidth
+            sx={{ maxWidth: { xs: "100%", sm: 250 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon />
+                  <SearchIcon fontSize="small" />
                 </InputAdornment>
               ),
             }}
           />
 
-          <Stack direction="row" spacing={2} width={{ xs: "100%", sm: "auto" }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            width={{ xs: "100%", sm: "auto" }}
+            justifyContent={{ xs: "center", sm: "flex-end" }}
+          >
             <Button
-              fullwidth
               variant="outlined"
               color="error"
+              sx={{ fontSize: { xs: "10px", sm: "14px" } }}
               disabled={
                 editingRowIndex !== null ||
                 Object.keys(rowSelection).length === 0
@@ -409,20 +446,43 @@ const TableComponent = ({ headers, rows }) => {
             >
               Delete Selected ({Object.keys(rowSelection).length})
             </Button>
+
             <Button
-              fullwidth
               variant="contained"
               color="primary"
+              sx={{ fontSize: { xs: "10px", sm: "14px" } }}
               onClick={() => setExportDialogOpen(true)}
-              sx={{ ml: 2 }}
             >
-              Export CSV
+              Export
             </Button>
           </Stack>
         </Box>
 
-        <TableContainer sx={{ maxHeight: 420 }}>
-          <Table stickyHeader size="small">
+        <TableContainer
+          sx={{
+            maxHeight: 420,
+            overflowX: "auto",
+            borderTop: "1px solid #eee",
+            borderBottom: "1px solid #eee",
+            "&::-webkit-scrollbar": { height: 6 },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: theme.palette.divider,
+              borderRadius: 4,
+            },
+          }}
+        >
+          <Table
+            stickyHeader
+            size="small"
+            sx={{
+              minWidth: 600,
+              tableLayout: "auto",
+              "& th, & td": {
+                whiteSpace: "nowrap",
+                p: { xs: 1, sm: 1.5 },
+              },
+            }}
+          >
             <TableHead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -437,7 +497,7 @@ const TableComponent = ({ headers, rows }) => {
                           backgroundColor: theme.palette.grey[100],
                           fontWeight: 600,
                           textAlign: "center",
-                          fontSize: "0.95rem",
+                          fontSize: { xs: "0.85rem", sm: "0.95rem" },
                         }}
                       >
                         {canSort ? (
@@ -505,11 +565,17 @@ const TableComponent = ({ headers, rows }) => {
 
         <Box
           sx={{
-            px: 2,
+            px: { xs: 1, sm: 2 },
             py: 1,
             borderTop: "1px solid #e0e0e0",
+            backgroundColor: "background.paper",
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: {
+              xs: "center",
+              sm: "flex-end",
+            },
+            overflowX: "auto",
+            width: "100%",
           }}
         >
           <TablePagination
@@ -520,6 +586,20 @@ const TableComponent = ({ headers, rows }) => {
             shape="rounded"
             showFirstButton
             showLastButton
+            sx={{
+              ".MuiTablePagination-toolbar": {
+                flexWrap: "wrap",
+                justifyContent: { xs: "center", sm: "flex-end" },
+                px: 1,
+              },
+              ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows":
+                {
+                  margin: { xs: "4px 0" },
+                },
+              ".MuiTablePaginationActions-root": {
+                marginLeft: "0 !important",
+              },
+            }}
           />
         </Box>
       </Paper>
