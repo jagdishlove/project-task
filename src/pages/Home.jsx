@@ -1,12 +1,23 @@
 import { Box, Typography } from "@mui/material";
 import React, { useState } from "react";
 import CSVUploader from "../components/CSVUploader";
-import TableComponent from "../components/Table";
+import TableComp from "../components/Table/Table";
 
 const Home = () => {
-  const [csvData, setCsvData] = useState({ headers: [], rows: [] });
+  const [columns, setColumns] = useState([]);
+  const [rows, setRows] = useState([]);
+
   const handleDataParsed = (data) => {
-    setCsvData(data);
+    if (!data?.headers || !Array.isArray(data.headers)) return;
+    if (!data?.rows || !Array.isArray(data.rows)) return;
+
+    const formattedColumns = data.headers.map((header) => ({
+      accessorKey: header,
+      header: header,
+    }));
+
+    setColumns(formattedColumns);
+    setRows(data.rows);
   };
 
   return (
@@ -21,8 +32,8 @@ const Home = () => {
         <CSVUploader onDataParsed={handleDataParsed} />
       </Box>
 
-      {csvData.headers.length > 0 && csvData.rows.length > 0 ? (
-        <TableComponent headers={csvData.headers} rows={csvData.rows} />
+      {columns.length > 0 && rows.length > 0 ? (
+        <TableComp headers={columns} rows={rows} />
       ) : (
         <Typography
           variant="body1"

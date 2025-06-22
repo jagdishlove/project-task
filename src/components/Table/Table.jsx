@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
+
 import {
   Table,
   TableBody,
@@ -12,71 +12,131 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Typography,
   Button,
-  TextField,
 } from "@mui/material";
+import { useMemo, useRef, useState } from "react";
+import EditableCell from "./EditableCell";
 
-function CSVTable({ columns, rows }) {
-  const [editingRowId, setEditingRowId] = useState(null);
-  const [tableData, setTableData] = useState(rows);
+const TableComp = ({ headers, rows }) => {
+  const [editingRowIndex, setEditingRowIndex] = useState(null);
+  const [editedRow, setEditedRow] = useState({});
+  console.log("editedRow", editedRow);
+  const safeHeaders = Array.isArray(headers) ? headers : [];
+  const safeRows = Array.isArray(rows) ? rows : [];
 
-  const handleCellChange = (rowIndex, columnId, value) => {
-    setTableData((oldData) =>
-      oldData.map((row, index) =>
-        index === rowIndex ? { ...row, [columnId]: value } : row
-      )
-    );
-  };
-  const editableColumns = useMemo(() => {
-    return columns.map((col) => ({
-      ...col,
-      cell: ({ row, getValue }) =>
-        row.id === editingRowId ? (
-          <TextField
-            variant="standard"
-            size="small"
-            value={getValue() || ""}
-            onChange={(e) =>
-              handleCellChange(row.index, col.accessorKey, e.target.value)
-            }
-          />
-        ) : (
-          getValue()
-        ),
-    }));
-  }, [columns, editingRowId]);
+  const [data, setData] = useState(rows);
+  const editBufferRef = useRef({});
 
-  const actionsColumn = {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) =>
-      row.id === editingRowId ? (
-        <>
-          <Button onClick={() => setEditingRowId(null)}>Save</Button>
-          <Button onClick={() => setEditingRowId(null)} color="error">
-            Cancel
-          </Button>
-        </>
-      ) : (
-        <Button onClick={() => setEditingRowId(row.id)}>Edit</Button>
-      ),
-  };
+  // Define non-editable columns
+  const columns = useMemo(
+    () => [
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row, table }) => {
+          const rowIndex = row.index;
+          const isEditing = editingRowIndex === rowIndex;
 
-  const finalColumns = [...editableColumns, actionsColumn];
+          return isEditing ? (
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => {
+                const changes = editBufferRef.current[rowIndex] || {};
+
+                Object.entries(changes).forEach(([columnId, value]) => {
+                  table.options.meta?.updateData?.(rowIndex, columnId, value);
+                });
+
+                setEditingRowIndex(null);
+                setEditedRow({});
+                delete editBufferRef.current[rowIndex];
+              }}
+            >
+              Save
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                setEditingRowIndex(rowIndex);
+                setEditedRow({ ...row.original });
+              }}
+            >
+              Edit
+            </Button>
+          );
+        },
+      },
+      ...safeHeaders.map((col) => ({
+        accessorKey: col.accessorKey,
+        header: col.header,
+        cell: ({ row, column }) => {
+          const rowIndex = row.index;
+          const columnId = column.id;
+          const value = row.original[columnId];
+
+          return editingRowIndex === rowIndex ? (
+            <EditableCell
+              value={value}
+              columnId={columnId}
+              rowIndex={rowIndex}
+              valueRef={editBufferRef}
+            />
+          ) : (
+            value
+          );
+        },
+      })),
+    ],
+    [safeHeaders, editingRowIndex]
+  );
+
   const table = useReactTable({
-    data: tableData,
-    columns: finalColumns,
+    data,
+    columns,
     getCoreRowModel: getCoreRowModel(),
+    columnResizeMode: "onChange",
+    meta: {
+      updateData: (rowIndex, columnId, value) =>
+        setData((prev) =>
+          prev.map((row, index) =>
+            index === rowIndex
+              ? {
+                  ...prev[rowIndex],
+                  [columnId]: value,
+                }
+              : row
+          )
+        ),
+    },
   });
 
+  if (!safeRows.length) {
+    return (
+      <Typography
+        variant="body1"
+        align="center"
+        sx={{ mt: 4, color: "text.secondary" }}
+      >
+        No data to display.
+      </Typography>
+    );
+  }
+
   return (
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+      <Table stickyHeader size="small" aria-label="csv data table">
         <TableHead>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableCell key={header.id}>
+                <TableCell
+                  key={header.id}
+                  sx={{ fontWeight: "bold", backgroundColor: "#f5f5f5" }}
+                >
                   {flexRender(
                     header.column.columnDef.header,
                     header.getContext()
@@ -91,7 +151,7 @@ function CSVTable({ columns, rows }) {
           {table.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
+                <TableCell key={cell.id} sx={{ whiteSpace: "nowrap" }}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}
@@ -101,6 +161,6 @@ function CSVTable({ columns, rows }) {
       </Table>
     </TableContainer>
   );
-}
+};
 
-export default CSVTable;
+export default TableComp;
