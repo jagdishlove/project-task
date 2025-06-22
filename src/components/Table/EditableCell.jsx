@@ -29,7 +29,29 @@ const EditableCell = React.memo(
         inputRef={inputRef}
         onChange={handleChange}
         disabled={disabled}
-        sx={{ minWidth: 100 }}
+        fullWidth
+        InputProps={{
+          sx: {
+            paddingY: 0.5,
+            fontSize: "0.875rem",
+            textAlign: "center", // or "left" based on column
+            height: "1.5rem", // consistent with MUI table cell height
+          },
+        }}
+        sx={{
+          "& .MuiInputBase-root": {
+            height: "100%", // make sure it fits the cell
+            display: "flex",
+            alignItems: "center",
+            my: 1,
+          },
+          "& input": {
+            padding: 1,
+
+            fontSize: "0.875rem",
+          },
+          width: "100%",
+        }}
       />
     );
   }

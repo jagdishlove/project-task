@@ -1,7 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import React, { useState } from "react";
 import CSVUploader from "../components/CSVUploader";
-import TableComp from "../components/Table/Table";
 import TableComponent from "../components/Table/TableComponent";
 
 const Home = () => {
@@ -34,7 +33,7 @@ const Home = () => {
       </Box>
 
       {columns.length > 0 && rows.length > 0 ? (
-        <TableComp headers={columns} rows={rows} />
+        <TableComponent headers={columns} rows={rows} />
       ) : (
         <Typography
           variant="body1"

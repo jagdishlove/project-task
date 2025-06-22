@@ -1,9 +1,6 @@
-// ExportCSVButton.jsx
-import React from "react";
-import Button from "@mui/material/Button";
+import { Button } from "@mui/material";
 import Papa from "papaparse";
-
-const ExportCSVButton = ({ data, filename = "table_data.csv" }) => {
+const ExportCSVButton = ({ data, filename = "table_data.csv", onClick }) => {
   const handleExport = () => {
     const csv = Papa.unparse(data);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -15,10 +12,12 @@ const ExportCSVButton = ({ data, filename = "table_data.csv" }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    onClick();
   };
 
   return (
     <Button
+      fullWidth
       variant="contained"
       color="primary"
       onClick={handleExport}

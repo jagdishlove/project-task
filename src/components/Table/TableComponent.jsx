@@ -1,69 +1,70 @@
-import React, { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   flexRender,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
 } from "@tanstack/react-table";
+import SearchIcon from "@mui/icons-material/Search";
+import SaveIcon from "@mui/icons-material/Save";
+import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
   Table,
-  TableHead,
   TableBody,
-  TableRow,
   TableCell,
-  TableSortLabel,
+  TableContainer,
+  TableHead,
+  TableRow,
   Paper,
+  Typography,
+  Button,
   TablePagination,
   Box,
+  TableSortLabel,
+  TextField,
+  InputAdornment,
+  Stack,
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tooltip,
+  IconButton,
   Checkbox,
-  Button,
-  Typography,
 } from "@mui/material";
-
-// Custom components
+import { useMemo, useRef, useState } from "react";
 import EditableCell from "./EditableCell";
-import TableActions from "./TableActions";
-import DeleteConfirmDialog from "./DeleteConfirmDialog";
-import TableSearch from "./TableSearch";
-
-// Custom hooks
-import { useTableData } from "../../hooks/useTableData";
-import { useTableState } from "../../hooks/useTableState";
-
-// Utilities
 import { getTablePaginationProps } from "../../utils/tableHelpers";
+import { useTableState } from "../../hooks/useTableState";
 import ExportCSVButton from "./ExportCSV";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
 
 const TableComponent = ({ headers, rows }) => {
+  const [editingRowIndex, setEditingRowIndex] = useState(null);
+  const [editedRow, setEditedRow] = useState({});
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const safeHeaders = Array.isArray(headers) ? headers : [];
+  const safeRows = Array.isArray(rows) ? rows : [];
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [rowToDeleteIndex, setRowToDeleteIndex] = useState(null);
+  const [exportFilename, setExportFilename] = useState("table_data.csv");
+
+  const handleDeleteConfirm = () => {
+    setData((prev) => prev.filter((_, idx) => idx !== rowToDeleteIndex));
+    setDeleteDialogOpen(false);
+    setRowToDeleteIndex(null);
+  };
+
   const [data, setData] = useState(rows);
-
-  console.log("datadatadata", data);
-  const {
-    editableData,
-    editingRowIndex,
-    startEditing,
-    saveEdit,
-    cancelEdit,
-    deleteRow,
-    deleteMultipleRows,
-    addNewRow,
-  } = useTableData(rows, headers);
-
-  const {
-    sorting,
-    setSorting,
-    globalFilter,
-    setGlobalFilter,
-    pagination,
-    setPagination,
-    deleteDialogOpen,
-    rowToDeleteIndex,
-    openDeleteDialog,
-    closeDeleteDialog,
-  } = useTableState();
+  const editBufferRef = useRef({});
+  const theme = useTheme();
+  const [rowSelection, setRowSelection] = useState({});
 
   const columns = useMemo(
     () => [
@@ -71,108 +72,201 @@ const TableComponent = ({ headers, rows }) => {
         id: "select",
         header: ({ table }) => (
           <Checkbox
+            indeterminate={
+              table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+            }
             checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
             onChange={table.getToggleAllRowsSelectedHandler()}
+            inputProps={{
+              "aria-label": "select all rows",
+            }}
+            size="small"
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
+            disabled={editingRowIndex !== null} // disable selection while editing
             onChange={row.getToggleSelectedHandler()}
+            inputProps={{
+              "aria-label": `select row ${row.index}`,
+            }}
+            size="small"
           />
         ),
+        enableSorting: false,
+        size: 40,
       },
       {
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const rowIndex = row.index;
           const isEditing = editingRowIndex === rowIndex;
 
-          return (
-            <TableActions
-              isEditing={isEditing}
-              onSave={() => saveEdit(rowIndex)}
-              onCancel={cancelEdit}
-              onEdit={() => startEditing(rowIndex)}
-              onDelete={(event) => {
-                event?.currentTarget?.blur();
-                openDeleteDialog(rowIndex);
-              }}
-            />
+          return isEditing ? (
+            <Stack direction="row" spacing={1}>
+              <Tooltip title="Save">
+                <IconButton
+                  sx={{
+                    outline: "none",
+                    "&:focus": { outline: "none" },
+                    "&:active": { boxShadow: "none" },
+                  }}
+                  color="primary"
+                  onClick={() => {
+                    const changes = editBufferRef.current[rowIndex] || {};
+                    Object.entries(changes).forEach(([columnId, value]) => {
+                      table.options.meta?.updateData?.(
+                        rowIndex,
+                        columnId,
+                        value
+                      );
+                    });
+                    setEditingRowIndex(null);
+                    setEditedRow({});
+                    delete editBufferRef.current[rowIndex];
+                  }}
+                >
+                  <SaveIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Cancel">
+                <IconButton
+                  sx={{
+                    outline: "none",
+                    "&:focus": { outline: "none" },
+                    "&:active": { boxShadow: "none" },
+                  }}
+                  color="secondary"
+                  onClick={() => {
+                    if (
+                      rowIndex === data.length - 1 && // if it's the last row (the newly added one)
+                      Object.values(row.original).every((v) => v === "") // and empty row
+                    ) {
+                      // Remove the newly added empty row from data
+                      setData((prev) => prev.slice(0, -1));
+                    }
+                    // Reset editing state
+                    setEditingRowIndex(null);
+                    setEditedRow({});
+                    delete editBufferRef.current[rowIndex];
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          ) : (
+            <Stack direction="row" spacing={1}>
+              <Tooltip title="Edit">
+                <IconButton
+                  sx={{
+                    outline: "none",
+                    "&:focus": { outline: "none" },
+                    "&:active": { boxShadow: "none" },
+                  }}
+                  color="primary"
+                  onClick={() => {
+                    setEditingRowIndex(rowIndex);
+                    setEditedRow({ ...row.original });
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete">
+                <IconButton
+                  sx={{
+                    outline: "none",
+                    "&:focus": { outline: "none" },
+                    "&:active": { boxShadow: "none" },
+                  }}
+                  color="error"
+                  onClick={() => {
+                    setRowToDeleteIndex(rowIndex);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           );
         },
       },
-      ...headers.map((header) => ({
-        accessorKey: header,
-        header: header,
-        cell: ({ row, getValue, column, table }) => {
+      ...safeHeaders.map((col) => ({
+        accessorKey: col.accessorKey,
+        header: col.header,
+        cell: ({ row, column }) => {
           const rowIndex = row.index;
+          const columnId = column.id;
+          const value = row.original[columnId];
+          const isEmpty = value === undefined || value === null || value === "";
 
-          if (editingRowIndex === rowIndex) {
-            const value = getValue() || "";
-
-            return (
-              <EditableCell
-                value={value}
-                row={row}
-                column={column}
-                table={table}
-              />
-            );
-          }
-
-          return data[rowIndex]?.[header] ?? "";
+          return editingRowIndex === rowIndex ? (
+            <EditableCell
+              value={value}
+              columnId={columnId}
+              rowIndex={rowIndex}
+              valueRef={editBufferRef}
+            />
+          ) : (
+            <Box
+              sx={{
+                textAlign: "left",
+                color: isEmpty ? "text.disabled" : "inherit",
+                fontStyle: isEmpty ? "italic" : "normal",
+                letterSpacing: isEmpty ? 1 : 0,
+                width: "100%",
+              }}
+            >
+              {isEmpty ? "———" : value}
+            </Box>
+          );
         },
+        enableSorting: true,
       })),
     ],
-    [
-      headers,
-      editingRowIndex,
-      cancelEdit,
-      saveEdit,
-      startEditing,
-      openDeleteDialog,
-      data,
-    ]
+    [safeHeaders, editingRowIndex]
   );
 
+  const {
+    sorting,
+    globalFilter,
+    pagination,
+    setPagination,
+    setGlobalFilter,
+    setSorting,
+  } = useTableState();
+
   const table = useReactTable({
-    data: editableData,
+    data,
     columns,
-    state: { sorting, globalFilter, pagination },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
     getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: { sorting, globalFilter, pagination, rowSelection },
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    columnResizeMode: "onChange",
     enableRowSelection: true,
     meta: {
-      updateData: (rowIndex, columnId, value) => {
-        console.log("rowIndexrowIndexrowIndex", rowIndex, columnId, value);
+      updateData: (rowIndex, columnId, value) =>
         setData((prev) =>
           prev.map((row, index) =>
-            index === rowIndex ? { ...row, [columnId]: value } : row
+            index === rowIndex
+              ? {
+                  ...prev[rowIndex],
+                  [columnId]: value,
+                }
+              : row
           )
-        );
-      },
+        ),
     },
   });
-
-  // ✅ Must come after table initialization
-  const selectedRowIndices = table
-    .getSelectedRowModel()
-    .rows.map((r) => r.index);
-
-  const handleDeleteConfirm = () => {
-    if (rowToDeleteIndex !== null) {
-      deleteRow(rowToDeleteIndex);
-    }
-    closeDeleteDialog();
-  };
 
   const paginationProps = getTablePaginationProps(
     table,
@@ -181,62 +275,154 @@ const TableComponent = ({ headers, rows }) => {
     setPagination
   );
 
+  if (!safeRows.length) {
+    return (
+      <Typography
+        variant="body1"
+        align="center"
+        sx={{ mt: 4, color: "text.secondary" }}
+      >
+        No data to display.
+      </Typography>
+    );
+  }
+
   return (
-    <Box>
+    <Box sx={{ px: 2, pb: 2 }}>
       <DeleteConfirmDialog
         open={deleteDialogOpen}
-        onClose={closeDeleteDialog}
+        onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
       />
-      <Typography
-        variant="h5"
-        component="h2"
-        sx={{ padding: "16px", fontWeight: "bold" }}
-      >
-        Data Table
-      </Typography>
-      <Paper
-        elevation={3}
-        sx={{
-          position: "relative",
-          height: 500,
-          display: "flex",
-          flexDirection: "column",
-          paddingTop: "64px",
-          paddingBottom: "72px",
-          width: { xs: "100%", sm: "100%" },
+
+      <Dialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        fullwidth
+        maxWidth="xs"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 2,
+          },
         }}
       >
-        <TableSearch
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          disabled={editingRowIndex !== null}
-        />
-        <Box sx={{ padding: "1rem", display: "flex", gap: 2 }}>
-          <Button
-            variant="contained"
-            onClick={addNewRow}
-            disabled={editingRowIndex !== null}
-          >
-            Add Row
-          </Button>
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            pb: 0,
+            fontSize: "1.2rem",
+          }}
+        >
+          Export CSV File
+        </DialogTitle>
 
-          <Button
-            variant="outlined"
-            color="error"
-            disabled={!selectedRowIndices.length > 0}
-            // sx={{ width: "30%", margin: 0 }}
-            onClick={() => {
-              deleteMultipleRows(selectedRowIndices);
-              table.resetRowSelection(); // clear selection
+        <DialogContent sx={{ pt: 1 }}>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Filename"
+            fullwidth
+            value={exportFilename}
+            onChange={(e) => setExportFilename(e.target.value)}
+            placeholder="Enter filename (e.g. report)"
+            InputProps={{
+              endAdornment: (
+                <Typography variant="caption" sx={{ ml: 1 }}>
+                  .csv
+                </Typography>
+              ),
             }}
-          >
-            Delete Selected ({selectedRowIndices.length})
+          />
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: "space-between", px: 2 }}>
+          <Button onClick={() => setExportDialogOpen(false)} color="inherit">
+            Cancel
           </Button>
+          <ExportCSVButton
+            data={data}
+            filename={
+              exportFilename.endsWith(".csv")
+                ? exportFilename
+                : `${exportFilename || "table_data"}.csv`
+            }
+            onClick={() => setExportDialogOpen(false)}
+          />
+        </DialogActions>
+      </Dialog>
+
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
+        <Typography
+          fullwidth
+          bgcolor={"lightgray"}
+          p={2}
+          variant="h6"
+          fontWeight="bold"
+        >
+          Data Table
+        </Typography>
+        <Box
+          sx={{
+            px: 2,
+            py: 2,
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <TextField
+            placeholder="Search..."
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            size="small"
+            width={80}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Stack direction="row" spacing={2} width={{ xs: "100%", sm: "auto" }}>
+            <Button
+              fullwidth
+              variant="outlined"
+              color="error"
+              disabled={
+                editingRowIndex !== null ||
+                Object.keys(rowSelection).length === 0
+              }
+              onClick={() => {
+                const selectedRowIndices = Object.keys(rowSelection).map((id) =>
+                  Number(id)
+                );
+                setData((prev) =>
+                  prev.filter((_, idx) => !selectedRowIndices.includes(idx))
+                );
+                setRowSelection({});
+              }}
+            >
+              Delete Selected ({Object.keys(rowSelection).length})
+            </Button>
+            <Button
+              fullwidth
+              variant="contained"
+              color="primary"
+              onClick={() => setExportDialogOpen(true)}
+              sx={{ ml: 2 }}
+            >
+              Export CSV
+            </Button>
+          </Stack>
         </Box>
 
-        <Box sx={{ flex: 1, overflowX: "auto", overflowY: "auto" }}>
-          <Table stickyHeader aria-label="editable table with selection">
+        <TableContainer sx={{ maxHeight: 420 }}>
+          <Table stickyHeader size="small">
             <TableHead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -248,12 +434,10 @@ const TableComponent = ({ headers, rows }) => {
                         key={header.id}
                         sortDirection={sortDirection || false}
                         sx={{
-                          backgroundColor: "background.paper",
-                          fontSize: "1rem",
-                          fontWeight: "700",
+                          backgroundColor: theme.palette.grey[100],
+                          fontWeight: 600,
                           textAlign: "center",
-
-                          width: header.getSize(),
+                          fontSize: "0.95rem",
                         }}
                       >
                         {canSort ? (
@@ -284,24 +468,28 @@ const TableComponent = ({ headers, rows }) => {
               {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={headers.length + 2}
+                    colSpan={headers.length + 1}
                     align="center"
                     sx={{ py: 4 }}
                   >
-                    <Typography
-                      sx={{ width: { xs: "7%", sm: "30%" } }}
-                      variant="subtitle1"
-                      color="textSecondary"
-                    >
+                    <Typography variant="subtitle1" color="textSecondary">
                       No results found.
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{
+                      "&:nth-of-type(even)": {
+                        backgroundColor: theme.palette.grey[50],
+                      },
+                    }}
+                  >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} sx={{ textAlign: "center" }}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -313,18 +501,15 @@ const TableComponent = ({ headers, rows }) => {
               )}
             </TableBody>
           </Table>
-        </Box>
+        </TableContainer>
 
         <Box
           sx={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            borderTop: "1px solid #ddd",
-            backgroundColor: "background.paper",
-            padding: "8px 16px",
-            zIndex: 10,
+            px: 2,
+            py: 1,
+            borderTop: "1px solid #e0e0e0",
+            display: "flex",
+            justifyContent: "flex-end",
           }}
         >
           <TablePagination
@@ -338,20 +523,6 @@ const TableComponent = ({ headers, rows }) => {
           />
         </Box>
       </Paper>
-
-      <Box
-        sx={{
-          top: 0,
-          right: 0,
-          left: 16,
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          height: "64px",
-        }}
-      >
-        <ExportCSVButton data={editableData} />
-      </Box>
     </Box>
   );
 };
