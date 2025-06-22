@@ -2,6 +2,7 @@ import { Box, Typography } from "@mui/material";
 import React, { useState } from "react";
 import CSVUploader from "../components/CSVUploader";
 import TableComp from "../components/Table/Table";
+import TableComponent from "../components/Table/TableComponent";
 
 const Home = () => {
   const [columns, setColumns] = useState([]);
